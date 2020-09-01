@@ -1,0 +1,7 @@
+export const RECIPES_READ = "RECIPES_READ";
+
+export const RECIPES_UPDATE = "RECIPES_UPDATE";
+
+export const RECIPES_DELETE = "RECIPES_DELETE";
+
+export const RECIPES_CREATE = "RECIPES_CREATE";

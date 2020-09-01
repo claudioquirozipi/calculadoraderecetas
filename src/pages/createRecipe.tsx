@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useHistory } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { RECIPES_CREATE } from "../redux/recipes/types";
 
 import Layout from "../components/Layout";
 import Typography from "@material-ui/core/Typography";
@@ -9,20 +11,17 @@ import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
 import TextField from "@material-ui/core/TextField";
 
+import Modal from "@material-ui/core/Modal";
 import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
 import AddIngredient from "../components/AddIngredient";
 
-import {
-  iRecipe,
-  iIngredients,
-  iIngredient,
-  useRecipe,
-} from "../useCase/Recipe";
-import { useConfig } from "../useCase/Config";
+import { iRecipe, iIngredients, iIngredient } from "../redux/recipes/interface";
+
 import ListIngredients from "../components/Listingredients";
 import { round } from "../global/function";
 import Divider from "@material-ui/core/Divider";
+import AddRecipe from "../components/AddRecipe";
 
 const useStyle = makeStyles((theme) => ({
   title: {
@@ -41,26 +40,20 @@ export interface CreateRecipeProps {}
 const CreateRecipe: React.FC<CreateRecipeProps> = () => {
   const classes = useStyle();
   const history = useHistory();
-  const { createRecipe } = useRecipe();
-  const { coin, setCoin } = useConfig();
-  const [taxes, setTaxes] = useState(12);
+  const dispatch = useDispatch();
+  const coin = useSelector((state: any) => state.configReducer.config.coin);
+  const [open, setOpen] = useState(false);
   const [recipe, setRecipe] = useState<iRecipe>({
     id: uuidv4(),
     nameRecipe: "",
     ingredients: [],
     costs: 0,
-    taxes: 0,
-    profits: 0,
-    price: 0,
-    sales: 0,
-    totalIncome: 0,
-    totalProfit: 0,
   });
-  const [ingredients, setIngredients] = useState<any[]>([]);
+  const [ingredients, setIngredients] = useState<iIngredients>([]);
 
   const createRecipeSubmit = (e: any) => {
     e.preventDefault();
-    createRecipe(recipe);
+    dispatch({ type: RECIPES_CREATE, payload: recipe });
     history.push("/recipe/list");
   };
 
@@ -76,6 +69,7 @@ const CreateRecipe: React.FC<CreateRecipeProps> = () => {
     };
     const newIngredients: iIngredients = [newIngredient, ...ingredients];
     setIngredients(newIngredients);
+    handleClose();
   };
 
   const deleteIngredient = (id: string) => {
@@ -90,19 +84,23 @@ const CreateRecipe: React.FC<CreateRecipeProps> = () => {
     setRecipe(newRecipe);
   };
 
+  const handleOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
   useEffect(() => {
     let newRecipe = { ...recipe };
     newRecipe.ingredients = [...ingredients];
-    newRecipe.taxes = round((newRecipe.price * taxes) / 100);
     const costs = ingredients.reduce((a, b) => {
       return a + b.costs;
     }, 0);
     newRecipe.costs = costs;
-    newRecipe.profits = round(
-      recipe.price - costs - (newRecipe.price * taxes) / 100
-    );
     setRecipe(newRecipe);
-  }, [ingredients, taxes, recipe.price]);
+  }, [ingredients]);
 
   return (
     <Layout>
@@ -114,104 +112,25 @@ const CreateRecipe: React.FC<CreateRecipeProps> = () => {
       >
         Crear receta
       </Typography>
-      <Grid container spacing={6}>
-        <Grid item xs={12} sm={6}>
-          <Paper>
-            <Box px={2} py={4} mb={2}>
-              <form onSubmit={createRecipeSubmit}>
-                <Typography variant="h4" color="initial">
-                  Agregar receta
-                </Typography>
-                <TextField
-                  className={classes.input}
-                  id="nameRecipe"
-                  label={"Nombre de la receta"}
-                  name="nameRecipe"
-                  variant="outlined"
-                  fullWidth
-                  value={recipe.nameRecipe}
-                  onChange={(e: any) => onChange(e, "nameRecipe")}
-                />
-                <TextField
-                  className={classes.input}
-                  id="coin"
-                  label={"Moneda"}
-                  name="coin"
-                  variant="outlined"
-                  fullWidth
-                  value={coin}
-                  onChange={(e: any) => setCoin(e.target.value)}
-                />
-                <TextField
-                  className={classes.input}
-                  id="taxes"
-                  label={"inpuesto en porcentaje (%)"}
-                  name="taxes"
-                  variant="outlined"
-                  fullWidth
-                  type="number"
-                  value={taxes}
-                  onChange={(e: any) => setTaxes(e.target.value)}
-                />
-                <Box my={2}>
-                  <Divider color="primary" />
-                </Box>
-                <AddIngredient onSubmit={handleAddIngredient} coin={coin} />
-                <Box my={2}>
-                  <Divider color="primary" />
-                </Box>
-                <TextField
-                  className={classes.input}
-                  id="price"
-                  label={"Precio de venta"}
-                  name="price"
-                  variant="outlined"
-                  fullWidth
-                  type="number"
-                  value={recipe.price}
-                  onChange={(e: any) => onChange(e, "price")}
-                />
 
-                <Button variant="contained" color="primary" type="submit">
-                  Agregrar Receta
-                </Button>
-              </form>
-            </Box>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <Paper>
-            <Box px={2} py={4}>
-              <Typography variant="h5" color="textSecondary">
-                {recipe.nameRecipe || "Nombre de la receta"}
-              </Typography>
-            </Box>
-            <Box px={2} py={1}>
-              <Typography variant="h5" color="textSecondary">
-                {`Costo: ${recipe.costs} ${coin}`}
-              </Typography>
-            </Box>
-            <Box px={2} py={1}>
-              <Typography variant="h5" color="textSecondary">
-                {`Iva: ${recipe.taxes} ${coin}`}
-              </Typography>
-            </Box>
-            <Box px={2} py={1}>
-              <Typography variant="h5" color="textSecondary">
-                {`Ganancia: ${recipe.profits} ${coin}`}
-              </Typography>
-            </Box>
-            <Box px={2} py={1}>
-              <Typography variant="h5" color="textSecondary">
-                {`Precio de venta: ${recipe.price} ${coin}`}
-              </Typography>
-            </Box>
-            <ListIngredients
-              ingredients={ingredients}
-              coin={coin}
-              delete={deleteIngredient}
-            />
-          </Paper>
+      <AddIngredient
+        onSubmit={handleAddIngredient}
+        coin={coin}
+        open={open}
+        onClouse={handleClose}
+      />
+      <Grid container justify="center" spacing={1}>
+        <Grid item xs={12} md={5}>
+          <AddRecipe
+            createRecipeSubmit={createRecipeSubmit}
+            nameRecipeValue={recipe.nameRecipe}
+            nameRecipeOnChange={(e: any) => onChange(e, "nameRecipe")}
+            costsRecipeValue={recipe.costs}
+            ingredients={ingredients}
+            onOpen={handleOpen}
+            coin={coin}
+            deleteIngredient={deleteIngredient}
+          />
         </Grid>
       </Grid>
     </Layout>

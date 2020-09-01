@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 
+import { useSelector, useDispatch } from "react-redux";
+
 import Layout from "../components/Layout";
 import { useRecipe } from "../useCase/Recipe";
 import { useConfig } from "../useCase/Config";
@@ -10,11 +12,16 @@ import Grid from "@material-ui/core/Grid";
 import { Doughnut } from "react-chartjs-2";
 import { useTheme } from "@material-ui/core/styles";
 import { round } from "../global/function";
+import { SALES_INITIALIZE } from "../redux/sales/types";
 
 export interface HomeProps {}
 
 const Home: React.FC<HomeProps> = () => {
   const { Recipes, updateSalesRecipe, financialSummary } = useRecipe();
+  const dispatch = useDispatch();
+  const counter = useSelector((state: any) => state.salesReducer);
+  const redu = useSelector((state: any) => state.recipesReducer.recipes);
+  console.log("c", counter);
   const { coin } = useConfig();
   const theme = useTheme();
   const [chartData, setChartData] = useState({
@@ -45,6 +52,11 @@ const Home: React.FC<HomeProps> = () => {
     ];
     setChartData(newChartData);
   }, [Recipes]);
+
+  useEffect(() => {
+    console.log("aquí", redu);
+    dispatch({ type: SALES_INITIALIZE, payload: redu });
+  }, []);
 
   return (
     <Layout>

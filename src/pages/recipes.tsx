@@ -9,14 +9,16 @@ import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
 import { useHistory } from "react-router-dom";
 import { useConfig } from "../useCase/Config";
+import { useSelector } from "react-redux";
 
 export interface RecipesProps {}
 
 const Recipes: React.FC<RecipesProps> = () => {
   const { Recipes, deleteRecipe } = useRecipe();
+  const sales = useSelector((state: any) => state.salesReducer.sales);
   const { coin } = useConfig();
   const history = useHistory();
-
+  console.log("sales", sales);
   return (
     <Layout>
       <Box my={4}>

@@ -11,12 +11,15 @@ export interface MyThemeProviderProps {}
 const theme = createMuiTheme({
   palette: {
     primary: {
-      main: pink[100],
+      main: "#A3EB86",
       contrastText: "#fff",
     },
     secondary: {
-      main: indigo[900],
+      main: "#FFD0B2",
       contrastText: "#fff",
+    },
+    background: {
+      default: "#FAF9CE",
     },
   },
 });
